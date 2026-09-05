@@ -40,7 +40,7 @@ function goBack(){
  if(!target)target="home";
  showScreen(target,{fromBack:true});
 }
-function showSetup(){const d=$("setupDate");if(d)d.value=new Date().toISOString().slice(0,10);showScreen("setup")}
+function showSetup(){applySavedTeamsToNewMatch();const d=$("setupDate");if(d)d.value=new Date().toISOString().slice(0,10);showScreen("setup")}
 function showModePicker(){showScreen("modePicker")}
 function continueMatch(){state?showScreen("scoreboard"):showSetup()}
 function getModes(){return {scoreboard:$("modeScoreboard")?.checked,quick:$("modeQuick")?.checked,analysis:$("modeAnalysis")?.checked,full:$("modeFull")?.checked,lineup:$("modeLineup")?.checked}}
@@ -49,7 +49,7 @@ function defaultPlayers(){return Array.from({length:14},(_,i)=>({
 }))}
 function startMatch(){
  const reg=+$("setupMinutes").value,extra=+$("extraMinutes").value;
- let ph=defaultPlayers(),pa=defaultPlayers();
+ ensureSavedTeams();let ph=savedTeams.home.players.map(p=>({...defaultPlayers()[0],number:p.number,name:p.name})),pa=savedTeams.away.players.map(p=>({...defaultPlayers()[0],number:p.number,name:p.name}));
  state={
   home:{name:$("setupHome").value||"HOME",score:0,players:ph,lineup:ph.slice(0,7).map(p=>p.number),gkOut:false},
   away:{name:$("setupAway").value||"AWAY",score:0,players:pa,lineup:pa.slice(0,7).map(p=>p.number),gkOut:false},
@@ -770,6 +770,96 @@ function showStats(){
  showScreen("stats");
 }
 
+
+let teamSetupSide="home";
+let savedTeams=JSON.parse(localStorage.getItem("hb3teams")||"null");
+
+function ensureSavedTeams(){
+ if(savedTeams)return;
+ savedTeams={
+   home:{name:"HOME",players:Array.from({length:14},(_,i)=>({number:i+1,name:"Player "+(i+1)}))},
+   away:{name:"AWAY",players:Array.from({length:14},(_,i)=>({number:i+1,name:"Player "+(i+1)}))}
+ };
+}
+function syncSavedTeamsFromState(){
+ ensureSavedTeams();
+ if(!state)return;
+ ["home","away"].forEach(team=>{
+   savedTeams[team]={
+     name:state[team].name,
+     players:state[team].players.map(p=>({number:p.number,name:p.name}))
+   };
+ });
+ localStorage.setItem("hb3teams",JSON.stringify(savedTeams));
+}
+function openTeamSetup(){
+ ensureSavedTeams();
+ if(state)syncSavedTeamsFromState();
+ teamSetupSide="home";
+ renderTeamSetup();
+ showScreen("teamSetup");
+}
+function setTeamSetupSide(side){
+ teamSetupSide=side;
+ renderTeamSetup();
+}
+function renderTeamSetup(){
+ ensureSavedTeams();
+ const team=savedTeams[teamSetupSide];
+ $("teamSetupName").value=team.name;
+ $("teamSetupHomeBtn").classList.toggle("active",teamSetupSide==="home");
+ $("teamSetupAwayBtn").classList.toggle("active",teamSetupSide==="away");
+ $("teamSetupPlayers").innerHTML=team.players.map((p,i)=>`
+   <div class="team-setup-row">
+     <input type="number" min="0" max="99" value="${p.number}" onchange="updateTeamPlayer(${i},'number',this.value)">
+     <input value="${p.name}" onchange="updateTeamPlayer(${i},'name',this.value)">
+     <button onclick="removeTeamSetupPlayer(${i})">×</button>
+   </div>`).join("");
+}
+function updateTeamSetupName(v){
+ ensureSavedTeams();savedTeams[teamSetupSide].name=v;
+}
+function updateTeamPlayer(i,key,v){
+ ensureSavedTeams();
+ if(key==="number")savedTeams[teamSetupSide].players[i].number=parseInt(v||"0",10);
+ else savedTeams[teamSetupSide].players[i].name=v;
+}
+function addTeamSetupPlayer(){
+ ensureSavedTeams();
+ const arr=savedTeams[teamSetupSide].players;
+ const next=(arr.length?Math.max(...arr.map(p=>+p.number||0))+1:1);
+ arr.push({number:next,name:"Player "+next});
+ renderTeamSetup();
+}
+function removeTeamSetupPlayer(i){
+ ensureSavedTeams();
+ savedTeams[teamSetupSide].players.splice(i,1);
+ renderTeamSetup();
+}
+function saveTeamSetup(){
+ ensureSavedTeams();
+ localStorage.setItem("hb3teams",JSON.stringify(savedTeams));
+ if(state){
+   ["home","away"].forEach(team=>{
+     state[team].name=savedTeams[team].name;
+     // preserve runtime stats where player number exists
+     const oldByNum=Object.fromEntries(state[team].players.map(p=>[p.number,p]));
+     state[team].players=savedTeams[team].players.map(p=>{
+       const old=oldByNum[p.number]||{};
+       return {...old,number:p.number,name:p.name};
+     });
+   });
+   save();
+ }
+ toast("Team setup saved");
+ renderTeamSetup();
+}
+function applySavedTeamsToNewMatch(){
+ ensureSavedTeams();
+ if($("setupHome"))$("setupHome").value=savedTeams.home.name;
+ if($("setupAway"))$("setupAway").value=savedTeams.away.name;
+}
+
 const HELP={
  home:[{el:"#homeNew",title:"Create a match",text:"Start here when you want to create a match manually."},{el:"#homeContinue",title:"Continue",text:"Resume the currently stored match without losing its state."},{el:"#homeHelp",title:"Help & Guide",text:"Replay tutorials at any time."}],
  setup:[{el:"#helpSetupHome",title:"Teams",text:"Enter teams or later import them from competition data."},{el:"#helpModeButton",title:"Choose modules",text:"Enable only the modules you need."}],
@@ -799,3 +889,11 @@ window.addEventListener("beforeunload",save);
 if($("setupDate"))$("setupDate").value=new Date().toISOString().slice(0,10);
 if($("beginnerHelp"))$("beginnerHelp").checked=settings.beginnerHelp!==false;
 updateContinue();
+
+
+window.addEventListener("load",()=>{
+ const img=document.querySelector('img[src="assets/shot_analysis_court.png"]');
+ if(img){
+   img.addEventListener("error",()=>console.error("Shot Analysis court image failed to load from assets/shot_analysis_court.png"));
+ }
+});

@@ -84,3 +84,13 @@ v0.12:
 - Select player -> Turnover / Error -> tap court position -> classify FAULT or BM.
 - Error locations are stored and displayed on the court map.
 - Player turnover count and last-five actions update after FAULT/BM.
+
+v0.13:
+- Added Team Setup screen.
+- HOME/AWAY team names editable.
+- Player numbers and names editable.
+- Add/remove players.
+- Team setup saved in localStorage.
+- Saved team setup is reused for new matches.
+- Shot Analysis court image path normalized to assets/shot_analysis_court.png.
+- Court image is included inside the assets folder.

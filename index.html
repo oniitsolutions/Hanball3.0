@@ -35,6 +35,10 @@
         <span class="big-title">Statistics</span>
         <span class="big-sub">Match and player analysis</span>
       </button>
+      <button id="homeTeams" class="big" onclick="openTeamSetup()">
+        <span class="big-title">Team Setup</span>
+        <span class="big-sub">Edit player numbers and names</span>
+      </button>
       <button id="homeHelp" class="big" onclick="showScreen('help')">
         <span class="big-title">Help & Guide</span>
         <span class="big-sub">Interactive tutorials and function guide</span>
@@ -324,7 +328,24 @@
     </div>
   </section>
 
-  <section id="settings" class="screen">
+  
+<section id="teamSetup" class="screen">
+<header><button onclick="goBack()">‹</button><h2>Team Setup</h2></header>
+<div class="team-setup-tabs">
+  <button id="teamSetupHomeBtn" onclick="setTeamSetupSide('home')">HOME</button>
+  <button id="teamSetupAwayBtn" onclick="setTeamSetupSide('away')">AWAY</button>
+</div>
+<div class="panel">
+  <label><span>Team name</span><input id="teamSetupName" oninput="updateTeamSetupName(this.value)"></label>
+</div>
+<div id="teamSetupPlayers" class="team-setup-list"></div>
+<div class="bottom-actions">
+  <button onclick="addTeamSetupPlayer()">+ Add player</button>
+  <button class="primary" onclick="saveTeamSetup()">Save team</button>
+</div>
+</section>
+
+<section id="settings" class="screen">
     <header><button onclick="goBack()">‹</button><h2>Settings</h2></header>
     <div class="panel">
       <label class="switchline"><input type="checkbox" id="beginnerHelp" checked onchange="saveSettings()"><span>Beginner help</span></label>

@@ -426,3 +426,23 @@ body::after{
 .error-dot{background:#ffcf3f;color:#111;border:2px solid #111}
 .error-dot.bm{background:#ff6b35;color:#111}
 #errorResultPanel{max-width:520px}
+
+/* v0.13 Team Setup */
+.team-setup-tabs{display:flex;gap:8px;justify-content:center;margin:14px}
+.team-setup-tabs button.active{background:#f3f3f3;color:#111}
+.team-setup-list{max-width:900px;margin:16px auto;display:grid;gap:8px}
+.team-setup-row{
+  display:grid;
+  grid-template-columns:90px 1fr 46px;
+  gap:8px;
+  align-items:center;
+  background:rgba(14,21,31,.9);
+  border:1px solid #2d323c;
+  border-radius:12px;
+  padding:9px;
+}
+.team-setup-row input{margin:0}
+.team-setup-row button{padding:8px}
+@media(max-width:620px){
+  .team-setup-row{grid-template-columns:74px 1fr 42px}
+}
