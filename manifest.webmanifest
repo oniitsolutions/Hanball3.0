@@ -1,0 +1,8 @@
+{
+  "name": "Handball Scoreboard 3.0",
+  "short_name": "Scoreboard 3",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0a0c10",
+  "theme_color": "#111111"
+}
