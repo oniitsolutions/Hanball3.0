@@ -1,0 +1,370 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#111">
+  <title>Handball Scoreboard 3.0</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div id="app">
+  <section id="home" class="screen active">
+    <div class="topbar">
+      <div class="brand">HANDBALL SCOREBOARD 3.0</div>
+      <div class="top-actions">
+        <button onclick="startHelp('home')">?</button>
+        <button onclick="showScreen('settings')">⚙</button>
+      </div>
+    </div>
+
+    <div class="home-grid">
+      <button id="homeMatches" class="big primary" onclick="showScreen('matches')">
+        <span class="big-title">Matches</span>
+        <span class="big-sub">Calendar, competition import and saved games</span>
+      </button>
+      <button id="homeNew" class="big" onclick="showSetup()">
+        <span class="big-title">New match</span>
+        <span class="big-sub">Create manually</span>
+      </button>
+      <button id="homeContinue" class="big" onclick="continueMatch()">
+        <span class="big-title">Continue</span>
+        <span class="big-sub" id="continueInfo">No active match</span>
+      </button>
+      <button id="homeStats" class="big" onclick="showStats()">
+        <span class="big-title">Statistics</span>
+        <span class="big-sub">Match and player analysis</span>
+      </button>
+      <button id="homeTeams" class="big" onclick="openTeamSetup()">
+        <span class="big-title">Team Setup</span>
+        <span class="big-sub">Edit player numbers and names</span>
+      </button>
+      <button id="homeHelp" class="big" onclick="showScreen('help')">
+        <span class="big-title">Help & Guide</span>
+        <span class="big-sub">Interactive tutorials and function guide</span>
+      </button>
+    </div>
+  </section>
+
+  <section id="matches" class="screen">
+    <header><button onclick="goBack()">‹</button><h2>Matches</h2><button onclick="startHelp('matches')">?</button></header>
+    <div class="panel">
+      <h3>Competition import</h3>
+      <p>The competition/calendar structure from v0.4 remains reserved here. Real Handbal.nl / Sportlink import will be connected after the UX engine is stable.</p>
+      <div class="filter-grid">
+        <label><span>Country</span><select><option>Netherlands</option><option>Germany</option><option>Poland</option><option>Slovakia</option><option>Czechia</option></select></label>
+        <label><span>League</span><select><option>Demo league</option></select></label>
+        <label><span>Team</span><select><option>All teams</option></select></label>
+      </div>
+    </div>
+  </section>
+
+  <section id="setup" class="screen">
+    <header><button onclick="goBack()">‹</button><h2>Match setup</h2><button onclick="startHelp('setup')">?</button></header>
+    <div class="panel">
+      <div class="filter-grid">
+        <label id="helpSetupHome"><span>Home team</span><input id="setupHome" value="HOME"></label>
+        <label><span>Away team</span><input id="setupAway" value="AWAY"></label>
+        <label><span>Regular half</span><select id="setupMinutes"><option>10</option><option>15</option><option>20</option><option>25</option><option selected>30</option></select></label>
+        <label><span>Extra-time half</span><select id="extraMinutes"><option>3</option><option selected>5</option><option>10</option></select></label>
+        <label><span>Competition</span><input id="setupCompetition"></label>
+        <label><span>Date</span><input type="date" id="setupDate"></label>
+      </div>
+      <div class="flow-preview">1ST HALF → 2ND HALF → ET 1 → ET 2 → 7 M</div>
+    </div>
+    <div class="bottom-actions"><button id="helpModeButton" class="primary" onclick="showModePicker()">Continue to match mode</button></div>
+  </section>
+
+  <section id="modePicker" class="screen">
+    <header><button onclick="showScreen('setup')">‹</button><h2>Match mode</h2><button onclick="startHelp('modes')">?</button></header>
+    <div class="mode-grid">
+      <label id="modeCardScoreboard" class="mode-card"><input type="checkbox" id="modeScoreboard" checked><div><h3>Scoreboard</h3><p>Clock, score and basic match control.</p></div></label>
+      <label class="mode-card"><input type="checkbox" id="modeQuick"><div><h3>Quick Stats</h3><p>Fast team-level events with live score correction.</p></div></label>
+      <label id="modeCardAnalysis" class="mode-card"><input type="checkbox" id="modeAnalysis"><div><h3>My Team Analysis</h3><p>Players, shot locations, target locations and outcomes.</p></div></label>
+      <label class="mode-card"><input type="checkbox" id="modeFull"><div><h3>Full Match Analysis</h3><p>Detailed analysis for both teams.</p></div></label>
+      <label id="modeCardLineup" class="mode-card"><input type="checkbox" id="modeLineup"><div><h3>Line-up & Substitutions</h3><p>Who is on court, quick swaps, multi-swap and +/- foundation.</p></div></label>
+      <label class="mode-card disabled"><input type="checkbox" disabled><div><h3>Video Tagging</h3><p>Planned for a later version.</p></div></label>
+    </div>
+    <div class="bottom-actions"><button class="primary" onclick="startMatch()">Start match</button></div>
+  </section>
+
+  <section id="scoreboard" class="screen">
+    <header class="score-head">
+      <button onclick="showScreen('home')">⌂</button>
+      <div class="match-meta"><span id="phaseLabel">1st half</span><span id="competitionLabel"></span></div>
+      <div class="top-actions"><button onclick="startHelp('scoreboard')">?</button><button onclick="toggleFullscreen()">⛶</button></div>
+    </header>
+
+    <div class="score-layout">
+      <div class="team-card" id="scoreHome">
+        <div class="team-name" id="homeName">HOME</div>
+        <div class="score" id="homeScore">0</div>
+        <div class="score-buttons"><button onclick="score('home',-1)">−</button><button class="plus" onclick="score('home',1)">+</button></div>
+      </div>
+
+      <div class="center">
+        <div id="clock">30:00</div><button id="editTimeBtn" class="time-edit-btn" onclick="openTimeEditor()">Edit time</button>
+        <button id="clockBtn" class="primary" onclick="toggleClock()">Start</button>
+        <div class="center-actions"><button id="nextPhaseBtn" class="hidden" onclick="nextPhase()">Next phase</button><button onclick="undo()">Undo</button></div>
+      </div>
+
+      <div class="team-card" id="scoreAway">
+        <div class="team-name" id="awayName">AWAY</div>
+        <div class="score" id="awayScore">0</div>
+        <div class="score-buttons"><button onclick="score('away',-1)">−</button><button class="plus" onclick="score('away',1)">+</button></div>
+      </div>
+    </div>
+    <nav class="bottom-nav" id="dynamicNav"></nav>
+    <div class="ad-slot">ADVERTISEMENT / CLUB SPONSOR</div>
+  </section>
+
+  <section id="quick" class="screen">
+    <header><button onclick="goBack()">‹</button><h2>Quick Stats</h2><button onclick="startHelp('quick')">?</button></header>
+    <div class="quick-score-strip">
+      <div class="quick-side">
+        <button onclick="score('home',-1)">−</button><div><div id="quickHomeName">HOME</div><strong id="quickHomeScore">0</strong></div><button onclick="score('home',1)">+</button>
+      </div>
+      <div class="quick-clock quick-clock-trigger" onclick="toggleClock()" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleClock()}">
+        <span id="quickClock">30:00</span>
+        <small id="quickPhase">1st half</small>
+        <div id="quickClockOverlay" class="quick-clock-overlay">▶</div><button class="quick-edit-time" onclick="event.stopPropagation();openTimeEditor()">Edit</button>
+      </div>
+      <div class="quick-side">
+        <button onclick="score('away',-1)">−</button><div><div id="quickAwayName">AWAY</div><strong id="quickAwayScore">0</strong></div><button onclick="score('away',1)">+</button>
+      </div>
+    </div>
+    <div id="quickGrid" class="quick-grid">
+      <button onclick="quickEvent('home','goal')">HOME GOAL</button><button onclick="quickEvent('away','goal')">AWAY GOAL</button>
+      <button onclick="quickEvent('home','miss')">HOME MISS</button><button onclick="quickEvent('away','miss')">AWAY MISS</button>
+      <button onclick="quickEvent('home','turnover')">HOME TURNOVER</button><button onclick="quickEvent('away','turnover')">AWAY TURNOVER</button>
+      <button onclick="quickEvent('home','7m')">HOME 7 M</button><button onclick="quickEvent('away','7m')">AWAY 7 M</button>
+      <button onclick="quickEvent('home','2min')">HOME 2 MIN</button><button onclick="quickEvent('away','2min')">AWAY 2 MIN</button>
+    </div>
+    <div class="ad-slot">ADVERTISEMENT / CLUB SPONSOR</div>
+  </section>
+
+  <section id="analysis" class="screen">
+<header><button onclick="goBack()">‹</button><h2>Shot Analysis</h2><button onclick="startHelp('analysis')">?</button></header>
+
+<div class="analysis-toolbar">
+  <select id="analysisTeam" onchange="analysisTeamChanged()"><option value="home">Home</option><option value="away">Away</option></select>
+  <select id="analysisPlayer" onchange="analysisPlayerChanged()"></select>
+  <button id="allPlayersBtn" onclick="showAllShots()">All players</button>
+  <button onclick="startPenaltyFlow()">7 m</button>
+  <button id="editShotBtn" onclick="toggleEditLastShot()">Edit last shot</button><button onclick="startErrorFlow()">Turnover / Error</button>
+</div>
+
+<div class="single-analysis">
+  <div class="analysis-instruction" id="analysisInstruction">1. Tap where the player shot from</div>
+  <div class="analysis-zoom-controls">
+    <button onclick="zoomShotMap(-0.2)">−</button>
+    <button onclick="resetShotMapZoom()">100%</button>
+    <button onclick="zoomShotMap(0.2)">+</button>
+  </div>
+  <div id="perspectiveCourt" class="perspective-court image-court unified-shot-map" onclick="shotMapTap(event)">
+    <img src="assets/shot_analysis_court.png" alt="3D handball court">
+    <div id="originDots" class="map-layer"></div>
+    <div id="goalDots" class="map-layer"></div>
+    <div id="pendingDotLayer" class="map-layer"></div><div id="errorDots" class="map-layer"></div>
+  </div>
+
+  <div class="shot-legend">
+    <span><i class="legend-dot origin"></i> Shot origin</span>
+    <span><i class="legend-dot goal"></i> Goal</span>
+    <span><i class="legend-dot save"></i> Save</span>
+    <span><i class="legend-dot post"></i> Post</span>
+    <span><i class="legend-dot miss"></i> Miss</span>
+    <span><i class="legend-dot block"></i> Block</span>
+  </div>
+
+  <div id="errorResultPanel" class="result-grid shot-result-panel hidden">
+      <button onclick="completeError('fault')">FAULT</button>
+      <button onclick="completeError('bm')">BM</button>
+      <button onclick="cancelErrorFlow()">Cancel</button>
+    </div>
+    <div id="shotResultPanel" class="result-grid shot-result-panel hidden">
+    <button onclick="completeShot('goal')">GOAL</button>
+    <button onclick="completeShot('save')">SAVE</button>
+    <button onclick="completeShot('post')">POST</button>
+    <button onclick="completeShot('miss')">MISS</button>
+    <button onclick="completeShot('block')">BLOCK</button>
+  </div>
+</div>
+
+<div id="analysisSummary" class="panel"></div><div class="panel shot-edit-hint"><p>Tip: tap the selected shot-origin point again to cancel it and choose a new position before saving. Use <b>Edit last shot</b> to correct the most recently saved shot for the selected player.</p></div>
+<div class="ad-slot">ADVERTISEMENT / CLUB SPONSOR</div>
+</section>
+
+  <section id="lineup" class="screen">
+    <header><button onclick="goBack()">‹</button><h2>Line-up & Substitutions</h2><button onclick="startHelp('lineup')">?</button></header>
+    <div class="lineup-team-switch"><button onclick="setLineupTeam('home')">HOME</button><button onclick="setLineupTeam('away')">AWAY</button></div>
+    <div class="lineup-status" id="lineupStatus"></div>
+
+    <div class="lineup-grid">
+      <div>
+        <h3>Court</h3>
+        <div id="courtPlayers" class="player-chip-grid"></div>
+      </div>
+      <div>
+        <h3>Bench</h3>
+        <div id="benchPlayers" class="player-chip-grid"></div>
+      </div>
+    </div>
+
+    <div class="lineup-actions">
+      <button id="multiSwapBtn" onclick="toggleMultiSwap()">Multi swap</button>
+      <button onclick="toggleGoalkeeper()">GK OUT / 7th PLAYER</button>
+      <button onclick="undoSubstitution()">Undo substitution</button>
+    </div>
+    <div class="panel"><p>Quick swap: tap a court player, then a bench player. Multi swap lets you select several OUT and IN players before applying.</p></div>
+    <div class="ad-slot">ADVERTISEMENT / CLUB SPONSOR</div>
+  </section>
+
+  <section id="sevenm" class="screen">
+    <header><button onclick="goBack()">‹</button><h2>7 m Shootout</h2></header>
+    <div class="shootout-score"><div><b id="soHomeName">HOME</b><span id="soHomeScore">0</span></div><div><b id="soAwayName">AWAY</b><span id="soAwayScore">0</span></div></div>
+    <div class="shootout-actions"><button onclick="shootout('home',1)">HOME GOAL</button><button onclick="shootout('home',0)">HOME MISS</button><button onclick="shootout('away',1)">AWAY GOAL</button><button onclick="shootout('away',0)">AWAY MISS</button></div>
+    <div id="shootoutHistory" class="panel"></div>
+  </section>
+
+  
+
+<section id="controlHub" class="screen">
+<header>
+  <button onclick="goBack()">‹</button>
+  <h2>Match Control Hub</h2>
+  <button onclick="startHelp('controlHub')">?</button>
+</header>
+
+<div class="hub-scoreboard">
+  <div class="hub-team-score">
+    <div id="hubHomeName" class="hub-team-name">HOME</div>
+    <div id="hubHomeScore" class="hub-score">0</div>
+    <div class="hub-score-correct"><button onclick="score('home',-1)">−</button><button onclick="score('home',1)">+</button></div>
+  </div>
+  <div class="hub-clock" onclick="toggleClock()">
+    <div id="hubClock">30:00</div>
+    <div id="hubPhase">1st half</div>
+    <small>Tap time to Start / Pause</small>
+  </div>
+  <div class="hub-team-score">
+    <div id="hubAwayName" class="hub-team-name">AWAY</div>
+    <div id="hubAwayScore" class="hub-score">0</div>
+    <div class="hub-score-correct"><button onclick="score('away',-1)">−</button><button onclick="score('away',1)">+</button></div>
+  </div>
+</div>
+
+<div class="hub-warnings" id="hubWarnings"></div>
+
+<div class="hub-teams">
+  <div class="hub-team-panel">
+    <div class="hub-team-header">
+      <h3 id="hubHomeTitle">HOME</h3>
+      <span id="hubHomeCount" class="hub-count"></span>
+    </div>
+    <div id="hubHomePlayers" class="hub-player-list"></div>
+  </div>
+
+  <div class="hub-team-panel">
+    <div class="hub-team-header">
+      <h3 id="hubAwayTitle">AWAY</h3>
+      <span id="hubAwayCount" class="hub-count"></span>
+    </div>
+    <div id="hubAwayPlayers" class="hub-player-list"></div>
+  </div>
+</div>
+
+<div class="ad-slot">ADVERTISEMENT / CLUB SPONSOR</div>
+</section>
+
+<section id="report" class="screen">
+<header><button onclick="goBack()">‹</button><h2>Match Report</h2></header>
+<div class="report-actions">
+<button onclick="renderMatchReport()">Refresh</button>
+<button onclick="shareMatchReport()">Share</button>
+<button onclick="downloadMatchReport()">Download JSON</button>
+</div>
+<div id="reportSummary" class="panel"></div>
+<div class="report-grid">
+<div class="report-card"><h3>Score progression</h3><canvas id="scoreChart" width="900" height="320"></canvas></div>
+<div class="report-card"><h3>Goals & turnovers over time</h3><canvas id="eventChart" width="900" height="320"></canvas></div>
+</div>
+<div id="playerMinutes" class="panel"></div>
+<div id="reportEvents" class="panel"></div>
+</section>
+
+<section id="timeEditor" class="screen">
+<header><button onclick="goBack()">‹</button><h2>Edit match time</h2></header>
+<div class="panel time-editor-panel">
+<label><span>Minutes</span><input id="editMinutes" type="number" min="0" max="99"></label>
+<label><span>Seconds</span><input id="editSeconds" type="number" min="0" max="59"></label>
+<div class="bottom-actions"><button onclick="goBack()">Cancel</button><button class="primary" onclick="applyTimeEdit()">Save time</button></div>
+</div>
+</section>
+
+<section id="stats" class="screen">
+<header><button onclick="goBack()">‹</button><h2>Complete Match Statistics</h2></header>
+<div class="stats-toolbar">
+  <button onclick="showStats()">Refresh</button>
+  <button onclick="showScreen('report')">Match Report</button>
+  <button onclick="shareMatchReport()">Share summary</button>
+</div>
+<div id="statsSummary" class="panel"></div>
+<div id="statsTeams" class="complete-stats-grid"></div>
+<div id="statsLineups" class="panel"></div>
+<div id="statsSubstitutions" class="panel"></div>
+<div id="statsTimeline" class="panel"></div>
+</section>
+
+  <section id="help" class="screen">
+    <header><button onclick="goBack()">‹</button><h2>Help & Guide</h2></header>
+    <div class="help-grid">
+      <button onclick="startHelp('home')">Getting started</button>
+      <button onclick="startHelp('modes')">Match modes</button>
+      <button onclick="startHelp('scoreboard')">Scoreboard</button>
+      <button onclick="startHelp('quick')">Quick Stats</button>
+      <button onclick="startHelp('analysis')">Shot Analysis</button>
+      <button onclick="startHelp('lineup')">Line-up & substitutions</button>
+    </div>
+  </section>
+
+  
+<section id="teamSetup" class="screen">
+<header><button onclick="goBack()">‹</button><h2>Team Setup</h2></header>
+<div class="team-setup-tabs">
+  <button id="teamSetupHomeBtn" onclick="setTeamSetupSide('home')">HOME</button>
+  <button id="teamSetupAwayBtn" onclick="setTeamSetupSide('away')">AWAY</button>
+</div>
+<div class="panel">
+  <label><span>Team name</span><input id="teamSetupName" oninput="updateTeamSetupName(this.value)"></label>
+</div>
+<div id="teamSetupPlayers" class="team-setup-list"></div>
+<div class="bottom-actions">
+  <button onclick="addTeamSetupPlayer()">+ Add player</button>
+  <button class="primary" onclick="saveTeamSetup()">Save team</button>
+</div>
+</section>
+
+<section id="settings" class="screen">
+    <header><button onclick="goBack()">‹</button><h2>Settings</h2></header>
+    <div class="panel">
+      <label class="switchline"><input type="checkbox" id="beginnerHelp" checked onchange="saveSettings()"><span>Beginner help</span></label>
+      <p>When enabled, tutorials can be offered the first time a major feature is opened.</p>
+    </div>
+  </section>
+</div>
+
+<div id="helpOverlay" class="help-overlay hidden">
+  <div id="helpSpotlight" class="help-spotlight"></div>
+  <div id="helpBubble" class="help-bubble">
+    <div id="helpStepTitle" class="help-title"></div>
+    <div id="helpStepText"></div>
+    <div class="help-actions"><button onclick="prevHelp()">Back</button><span id="helpCounter"></span><button onclick="nextHelp()">Next</button><button onclick="closeHelp()">Skip</button></div>
+  </div>
+  <div class="tap-pulse" id="tapPulse"></div>
+</div>
+
+<div id="toast"></div>
+<script src="app.js"></script>
+</body>
+</html>
